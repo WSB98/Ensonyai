@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, render_template
 from litellm import completion
 import json
-from power_levels import getCharacterAtlas, getCharacterObjFromText
+from power_levels import getCharacterAtlas, getCharacterObjFromText, generate_plotly_graph
 
 app = Flask(__name__)
 
@@ -63,6 +63,20 @@ def send_message():
     processed_message = {"role": "bot", "content": response.choices[0].message}
     
     return jsonify({"message":processed_message, "analytics":analytics, "history":currChatHistory, "embeddings":embeddings})
+
+@app.route('/mindmap', methods=['GET'])
+def get_character_map():
+    # Generate the plotly_graph_data here, similar to how you did before
+    plotly_graph_data = generate_plotly_graph(characterAtlas)
+    
+    # Serialize plotly_graph_data into JSON-compatible format
+    plotly_graph_data_json = {
+        'data': [scatter.to_plotly_json() for scatter in plotly_graph_data['data']],
+        'layout': plotly_graph_data['layout'].to_plotly_json()
+    }
+
+    return render_template('mindmap.html', plotly_graph_data=plotly_graph_data_json)
+
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False, port=5000)

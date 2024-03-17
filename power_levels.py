@@ -4,6 +4,7 @@ from collections import defaultdict
 import networkx as nx
 import matplotlib.pyplot as plt
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import plotly.graph_objects as go
 
 
 # Load the narrative from the JSON file
@@ -196,46 +197,59 @@ def getCharacterObjFromText(message):
 # Visualization part
 
 # Create a new directed graph
-'''
-G = nx.DiGraph()
+def generate_plotly_graph(character_atlas):
+    G = nx.DiGraph()
+    # Add nodes, edges with weights and sentiments
+    for character, data in character_atlas.items():
+        G.add_node(character)
+        for connected_character, info in data['connections'].items():
+            G.add_edge(character, connected_character, weight=info['weight'], sentiment=info['avg_sentiment'])
 
-# Add nodes, edges with weights and sentiments
-for character, data in character_atlas.items():
-    G.add_node(character)
-    for connected_character, info in data['connections'].items():
-        # Add an edge with weight and sentiment
-        G.add_edge(character, connected_character, weight=info['weight'], sentiment=info['avg_sentiment'])
+    pos = nx.spring_layout(G)
 
-# Define positions for the nodes
-pos = nx.spring_layout(G)
+    edge_traces = []
+    for edge in G.edges(data=True):
+        if edge[2]['sentiment'] > 0:
+            edge_color = "green"
+        elif edge[2]['sentiment'] < 0:
+            edge_color = "red"
+        else:
+            edge_color = "gray"
+        normalized_weight = edge[2]['weight'] / max(info['weight'] for _, _, info in G.edges(data=True)) * 10
+        edge_trace = go.Scatter(x=[pos[edge[0]][0], pos[edge[1]][0], None],
+                                y=[pos[edge[0]][1], pos[edge[1]][1], None],
+                                mode='lines',
+                                line=dict(color=edge_color, width=normalized_weight),
+                                opacity=0.5,
+                                hoverinfo='text',
+                                hovertext=f"{edge[0]} to {edge[1]}<br>Sentiment: {edge[2]['sentiment']}")
+        edge_traces.append(edge_trace)
 
-# Draw the network
-for edge in G.edges(data=True):
-    # Map the sentiment value to a color
-    if edge[2]['sentiment'] > 0:
-        edge_color = "green"
-    elif edge[2]['sentiment'] < 0:
-        edge_color = "red"
-    else:
-        edge_color = "gray"
-    
-    # Normalize weight for visualization purposes
-    normalized_weight = edge[2]['weight'] / max(info['weight'] for _, _, info in G.edges(data=True)) * 10
-    
-    # Draw the edge with specified color and normalized weight as thickness
-    nx.draw_networkx_edges(G, pos, edgelist=[(edge[0], edge[1])], width=normalized_weight, alpha=0.5, edge_color=edge_color)
+    node_x = []
+    node_y = []
+    node_text = []
+    for node in G.nodes():
+        x, y = pos[node]
+        node_x.append(x)
+        node_y.append(y)
+        connections_info = "<br>".join([f"{neighbor}: {info['sentiment']}" for neighbor, info in G[node].items()])
+        node_text.append(f"{node}<br>Connections:<br>{connections_info}")
 
-# Draw nodes
-nx.draw_networkx_nodes(G, pos, node_size=2000, node_color='skyblue')
+    node_trace = go.Scatter(x=node_x, 
+                            y=node_y, 
+                            text=node_text, 
+                            mode='markers+text', 
+                            textposition="bottom center", 
+                            hoverinfo='text',
+                            marker=dict(color='skyblue', size=20, line_width=2))
 
-# Draw node labels
-nx.draw_networkx_labels(G, pos, font_size=12, font_weight='bold')
-
-# Remove axes
-plt.axis('off')
-
-# Set title and show plot
-plt.title("Character Connections Mind Map with Sentiment", fontsize=16)
-plt.tight_layout()
-plt.show()
-'''
+    return {
+        'data': edge_traces + [node_trace],
+        'layout': go.Layout(title="Character Connections Mind Map with Sentiment",
+                            titlefont_size=16,
+                            showlegend=False,
+                            hovermode='closest',
+                            margin=dict(b=20,l=5,r=5,t=40),
+                            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
+    }

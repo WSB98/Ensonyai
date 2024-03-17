@@ -75,5 +75,14 @@ document.addEventListener('DOMContentLoaded', async function () {
            
         }
     });
+
+
+    var mindmapbutton = document.getElementById('mindmapbutton');
+    mindmapbutton.addEventListener('click', () => {
+        fetch('/mindmap').then(() => {
+            window.location.assign('http://localhost:5000/mindmap')
+        })
+    })
+
 });
 

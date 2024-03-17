@@ -134,4 +134,35 @@ h1 {
 }
 
 
+#mind-map {
+    width: 800px;
+    height: 600px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin: 20px auto;
+    background-color: #000;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+/* External CSS file (styles.css) */
+/* Styling the node */
+.node circle {
+    fill: #ffcc00; /* Node fill color */
+}
 
+/* Styling the node label */
+.node text {
+    font-size: 12px; /* Font size of the label */
+    fill: #00000000; /* Text color */
+    display: none;
+}
+
+/* Styling the hover effect */
+.node:hover circle {
+    fill: #ff9900; /* Change fill color on hover */
+    stroke-width: 3px; /* Increase border width on hover */
+}
+
+.node:hover text {
+    font-size: 14px; /* Increase font size on hover */
+    fill: #000; /* Change text color on hover */
+}

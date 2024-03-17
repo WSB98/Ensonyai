@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Mind Map</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="../static/css/style.css">
+    
+</head>
+<body>
+    <div id="mind-map"></div>
+    <script>
+        var plotly_graph_data = {{ plotly_graph_data | tojson | safe }};
+        Plotly.newPlot('mind-map', plotly_graph_data.data, plotly_graph_data.layout);
+    </script>
+</body>
+</html>
